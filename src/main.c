@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "xway_msg.h"
+#include "xway_pkg.h"
 
 // 00000001 00 ??/08 00 F0 30 10 14 10 25 06
 // 00000001 00 ??/07 00 F0 14 10 30 10 FE/FD
@@ -21,10 +21,6 @@
 // réponse F1 30 10 14 10 19(0 to 1) XX FE
 //
 // write --> read --> read --> write
-
-
-
-
 
 int main() {
   int sock;
