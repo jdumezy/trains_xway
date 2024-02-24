@@ -1,0 +1,3 @@
+/home/jd/Documents/sec/trains_xway/build/CMakeFiles/main.dir
+/home/jd/Documents/sec/trains_xway/build/CMakeFiles/edit_cache.dir
+/home/jd/Documents/sec/trains_xway/build/CMakeFiles/rebuild_cache.dir
