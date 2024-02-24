@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/jd/Documents/sec/trains_xway/build",
-  "command": "/usr/bin/cc  -I/home/jd/Documents/sec/trains_xway/include  -o CMakeFiles/main.dir/src/main.c.o -c /home/jd/Documents/sec/trains_xway/src/main.c",
-  "file": "/home/jd/Documents/sec/trains_xway/src/main.c"
-}
-]
