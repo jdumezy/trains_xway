@@ -2,6 +2,7 @@
 
 #include "xway_pkg.h"
 
+// Set len when received
 void xpck_set_intern_length(XwayPacket *xpck) {
   if (xpck->header == NULL) {
     printf("Uninitialised Xway packet!\n");
@@ -11,6 +12,7 @@ void xpck_set_intern_length(XwayPacket *xpck) {
   }
 }
 
+// Set len in header
 void xpck_set_pck_length(XwayPacket *xpck) {
   if (xpck->header == NULL) {
     printf("Uninitialised Xway packet!\n");
@@ -19,6 +21,7 @@ void xpck_set_pck_length(XwayPacket *xpck) {
   }
 }
 
+// Print an Xway packet
 void xpck_print(XwayPacket *xpck) {
   size_t length = xpck->len;
   printf("Xway [%zu]: (", length);
@@ -34,6 +37,7 @@ void xpck_print(XwayPacket *xpck) {
   printf("\n");
 }
 
+// Checks if an Xway packet is 5 way
 void xpck_set_is_5_way(XwayPacket *xpck) {
   if (xpck->header == NULL) {
     printf("Uninitialised Xway packet!\n");
@@ -47,6 +51,7 @@ void xpck_set_is_5_way(XwayPacket *xpck) {
   }
 }
 
+// Sets the header for a newly created Xway packet
 void xpck_set_header(XwayPacket *xpck, bool is_5_way) {
   int len = is_5_way ? HEADER_5_LEN : HEADER_3_LEN;
   char *h = is_5_way ? header_5_way : header_3_way;
@@ -64,8 +69,10 @@ void xpck_set_header(XwayPacket *xpck, bool is_5_way) {
   }
   xpck->header = header;
   xpck->len += len;
+  xpck->is_5_way = is_5_way;
 }
 
+// Set 5 way id of an Xway packet
 void xpck_set_5_way_id(XwayPacket *xpck, unsigned char id) {
   if (xpck->header == NULL) {
     printf("Uninitialised Xway packet!\n");
@@ -73,6 +80,7 @@ void xpck_set_5_way_id(XwayPacket *xpck, unsigned char id) {
   xpck->header[FWAY_ID_BYTE] = id;
 }
 
+// Get 5 way id of an Xway packet
 unsigned char xpck_get_5_way_id(XwayPacket *xpck) {
   if (xpck->header == NULL) {
     printf("Uninitialised Xway packet!\n");
@@ -81,6 +89,7 @@ unsigned char xpck_get_5_way_id(XwayPacket *xpck) {
   return xpck->header[FWAY_ID_BYTE];
 }
 
+// Creates the body of an Xway packet
 void xpck_set_body(XwayPacket *xpck, char *bytes) {
   size_t len = sizeof(bytes);
   unsigned char *body = malloc(sizeof(unsigned char) * len);
@@ -91,6 +100,7 @@ void xpck_set_body(XwayPacket *xpck, char *bytes) {
   xpck->len += len;
 }
 
+// Appends to the body of an Xway packet
 void xpck_append_body(XwayPacket *xpck, char *bytes) {
   if (xpck->body == NULL) {
     printf("Uninitialised Xway packet!\n");
@@ -112,6 +122,7 @@ void xpck_append_body(XwayPacket *xpck, char *bytes) {
   xpck->len += new_body_len;
 }
 
+// Destroy an Xway packet
 void xpck_destroy(XwayPacket *xpck) {
   if (xpck->header != NULL) {
     free(xpck->header);
@@ -119,8 +130,39 @@ void xpck_destroy(XwayPacket *xpck) {
   if (xpck->body != NULL) {
     free(xpck->body);
   }
+  free(xpck);
+}
+
+// Create empty 3 way Xway packet
+XwayPacket * xpck_create_3_way_empty() {
+  XwayPacket * xpck = malloc(sizeof(XwayPacket));
+  xpck_set_header(xpck, false);
+  return xpck;
+}
+
+// Create 3 way Xway packet
+XwayPacket * xpck_create_3_way(char *bytes) {
+  XwayPacket * xpck = malloc(sizeof(XwayPacket));
+  xpck_set_header(xpck, false);
+  xpck_set_body(xpck, bytes);
+  return xpck;
+}
+
+// Create empty 5 way Xway packet
+XwayPacket * xpck_create_5_way_empty() {
+  XwayPacket * xpck = malloc(sizeof(XwayPacket));
+  xpck_set_header(xpck, true);
+  return xpck;
+}
+
+// Create 5 way Xway packet
+XwayPacket * xpck_create_5_way(char *bytes) {
+  XwayPacket * xpck = malloc(sizeof(XwayPacket));
+  xpck_set_header(xpck, true);
+  xpck_set_body(xpck, bytes);
+  return xpck;
 }
 
 // when receiving a xway packet:
 // set len, set 5 way (if 5 way get id)), eventually print, get key
-// add function to convert between hex and int 
+// add function to switch byte from 0 to 1;
