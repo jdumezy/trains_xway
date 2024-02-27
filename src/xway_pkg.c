@@ -59,14 +59,18 @@ void xpck_set_header(XwayPacket *xpck, bool is_5_way) {
   unsigned char *header = malloc((sizeof(unsigned char)) * len);
   for (int i = 0; i < len; i++) {
     switch (i) {
-      case ADDR_BYTE:
-        header[i] = XWAY_ADDR;
+      case CLIENT_ADDR_BYTE:
+        header[i] = XWAY_CLIENT_ADDR;
+        break;
+      case SERVER_ADDR_BYTE:
+        header[i] = XWAY_SERVER_ADDR;
         break;
       default:
         header[i] = h[i];
         break;
     }
   }
+
   xpck->header = header;
   xpck->len += len;
   xpck->is_5_way = is_5_way;
@@ -160,6 +164,12 @@ XwayPacket * xpck_create_5_way(char *bytes) {
   XwayPacket * xpck = malloc(sizeof(XwayPacket));
   xpck_set_header(xpck, true);
   xpck_set_body(xpck, bytes);
+  return xpck;
+}
+
+XwayPacket * xpck_from_bytes(char *bytes) {
+  XwayPacket * xpck = malloc(sizeof(XwayPacket));
+  // à faire
   return xpck;
 }
 
