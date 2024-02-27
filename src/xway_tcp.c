@@ -1,11 +1,11 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <stdio.h>
 
 #include "xway_tcp.h"
-#include "xway_packet.h"
 #include "xway_pkg.h"
+
+char ip_address[12] = "10.31.125.14";
 
 // Open a TCP connection
 void open_connection(int *sock, struct sockaddr_in *server) {

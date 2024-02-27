@@ -2,8 +2,7 @@
 #define TRAIN_XWAY_INCLUDE_XWAY_MSG_H_
 
 #include <stdbool.h>
-
-#include "xway_packet.h"
+#include <stdlib.h>
 
 #define SIZE_BYTE 5
 #define MSG_TYPE_BYTE 7
@@ -18,12 +17,14 @@
 #define XWAY_CLIENT_ADDR 48
 #define XWAY_SERVER_ADDR 20
 
-char header_3_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x10, 0x00, 0x10};
-char header_5_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF1, 0x00, 0x10, 0x00, 0x10, 0x09, 0x00};
-
+typedef struct {
+  unsigned char *header;
+  unsigned char *body;
+  size_t len;
+  bool is_5_way;
+} XwayPacket;
 
 void xpck_set_intern_length(XwayPacket *xpck);
-void xpck_set_pck_length(XwayPacket *xpck);
 void xpck_print(XwayPacket *xpck);
 void xpck_set_is_5_way(XwayPacket *xpck);
 void xpck_set_header(XwayPacket *xpck, bool is_5_way);

@@ -10,4 +10,5 @@ add_library(xway_tcp src/xway_tcp.c)
 
 add_executable(main src/main.c)
 
+target_link_libraries(xway_tcp xway_pkg)
 target_link_libraries(main xway_pkg xway_tcp)

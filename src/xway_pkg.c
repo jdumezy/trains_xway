@@ -1,25 +1,11 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "xway_pkg.h"
 
-// Set len when received
-void xpck_set_intern_length(XwayPacket *xpck) {
-  if (xpck->header == NULL) {
-    printf("Uninitialised Xway packet!\n");
-  } else {
-    unsigned int length = SIZE_BYTE+1 + (unsigned char)(xpck->header)[SIZE_BYTE];
-    xpck->len = (size_t)length;
-  }
-}
-
-// Set len in header
-void xpck_set_pck_length(XwayPacket *xpck) {
-  if (xpck->header == NULL) {
-    printf("Uninitialised Xway packet!\n");
-  } else {
-    xpck->header[SIZE_BYTE] = xpck->len;
-  }
-}
+char header_3_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x10, 0x00, 0x10};
+char header_5_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF1, 0x00, 0x10, 0x00, 0x10, 0x09, 0x00};
 
 // Print an Xway packet
 void xpck_print(XwayPacket *xpck) {
@@ -146,8 +132,7 @@ XwayPacket * xpck_create_3_way_empty() {
 
 // Create 3 way Xway packet
 XwayPacket * xpck_create_3_way(char *bytes) {
-  XwayPacket * xpck = malloc(sizeof(XwayPacket));
-  xpck_set_header(xpck, false);
+  XwayPacket * xpck = xpck_create_3_way_empty(); 
   xpck_set_body(xpck, bytes);
   return xpck;
 }
@@ -161,15 +146,31 @@ XwayPacket * xpck_create_5_way_empty() {
 
 // Create 5 way Xway packet
 XwayPacket * xpck_create_5_way(char *bytes) {
-  XwayPacket * xpck = malloc(sizeof(XwayPacket));
-  xpck_set_header(xpck, true);
+  XwayPacket * xpck = xpck_create_5_way_empty(); 
   xpck_set_body(xpck, bytes);
   return xpck;
 }
 
 XwayPacket * xpck_from_bytes(char *bytes) {
   XwayPacket * xpck = malloc(sizeof(XwayPacket));
-  // à faire
+
+  int len = bytes[SIZE_BYTE];
+  xpck->len = len;
+
+  bool is_5_way = (bytes[MSG_TYPE_BYTE] == (char)0xF0);
+
+  int header_len = is_5_way ? HEADER_5_LEN : HEADER_3_LEN;
+  int body_len = len - header_len;
+
+  unsigned char *header = malloc(sizeof(char) * header_len);
+  unsigned char *body = malloc(sizeof(char) * body_len);
+
+  memcpy(header, bytes, header_len);
+  memcpy(body, bytes + header_len, body_len);
+
+  xpck->header = header;
+  xpck->body = body;
+
   return xpck;
 }
 
