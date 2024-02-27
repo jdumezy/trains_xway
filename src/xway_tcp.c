@@ -55,8 +55,39 @@ void send_stop(int *sock) {
 }
 
 void send_order(int *sock, XwayPacket *xpck) {
-  xpck_print(xpck);
-  send_xway(sock, xpck); 
+  printf("Sending order {\n");
+
+  send_xway(sock, xpck);
+  printf("\tSend: "); xpck_print(xpck);
+
+  XwayPacket *xpck_a = receive_xway(sock);
+  printf("\tRecv: "); xpck_print(xpck_a);
+
+  if (xpck_a->body != NULL && xpck_a->body[0] == (unsigned char)0xfd) {
+    printf("\tRequirement already satisfied\n");
+  }
+  else if (xpck_a->body != NULL && xpck_a->body[0] == (unsigned char)0xfe) {
+    XwayPacket *xpck_c = receive_xway(sock);
+    printf("\tRecv: "); xpck_print(xpck_c);
+    unsigned char id = xpck_get_5_way_id(xpck_c);
+
+    char bytes[] = { 0xfe };
+    XwayPacket *xpck_r = xpck_create_5_way(bytes);
+    xpck_set_5_way_id(xpck_r, id);
+    xpck_r->body[FWAY_TYPE_BYTE] = (unsigned char)0x19;
+
+    send_xway(sock, xpck_r);
+    printf("\tSend: "); xpck_print(xpck_r);
+
+    xpck_destroy(xpck_c);
+    xpck_destroy(xpck_r);
+  } else {
+    printf("Incorrect message received.\n");
+  }
+
+  xpck_destroy(xpck_a);
+
+  printf("}\n");
 }
 
 // 00000001 00 ??/08 00 F0 30 10 14 10 25 06

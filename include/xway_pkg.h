@@ -24,7 +24,8 @@ typedef struct {
   bool is_5_way;
 } XwayPacket;
 
-void xpck_set_intern_length(XwayPacket *xpck);
+int length_packet(char *bytes);
+void xpck_set_length_in_header(XwayPacket *xpck);
 void xpck_print(XwayPacket *xpck);
 void xpck_set_is_5_way(XwayPacket *xpck);
 void xpck_set_header(XwayPacket *xpck, bool is_5_way);

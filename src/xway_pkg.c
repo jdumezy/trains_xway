@@ -5,8 +5,7 @@
 #include "xway_pkg.h"
 
 char header_3_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x10, 0x00, 0x10};
-char header_5_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF1, 0x00, 0x10, 0x00, 0x10, 0x09, 0x00};
-
+char header_5_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF1, 0x00, 0x10, 0x00, 0x10, 0x00, 0x00};
 
 // Get packet length
 int length_packet(char *bytes) {
@@ -75,7 +74,6 @@ void xpck_set_header(XwayPacket *xpck, bool is_5_way) {
         break;
     }
   }
-
   xpck->header = header;
   xpck->len += len;
   xpck->is_5_way = is_5_way;
@@ -178,7 +176,7 @@ XwayPacket * xpck_from_bytes(char *bytes) {
   int len = length_packet(bytes);
   xpck->len = len;
 
-  bool is_5_way = (bytes[MSG_TYPE_BYTE] == (char)0xF1);
+  bool is_5_way = (bytes[MSG_TYPE_BYTE] == (char)0xf1);
 
   int header_len = is_5_way ? HEADER_5_LEN : HEADER_3_LEN;
   int body_len = len - header_len;
@@ -195,6 +193,3 @@ XwayPacket * xpck_from_bytes(char *bytes) {
   return xpck;
 }
 
-// when receiving a xway packet:
-// set len, set 5 way (if 5 way get id)), eventually print, get key
-// add function to switch byte from 0 to 1;
