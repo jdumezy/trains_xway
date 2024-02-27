@@ -7,17 +7,36 @@
 char header_3_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x10, 0x00, 0x10};
 char header_5_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF1, 0x00, 0x10, 0x00, 0x10, 0x09, 0x00};
 
+
+// Get packet length
+int length_packet(char *bytes) {
+  int length = SIZE_BYTE+1 + (unsigned char)bytes[SIZE_BYTE];
+  return length;
+}
+
+// Set the length in the header
+void xpck_set_length_in_header(XwayPacket *xpck) {
+  if (xpck->header == NULL) {
+    printf("Uninitialised Xway packet!\n");
+  } else {
+    xpck->header[SIZE_BYTE] = xpck->len - (SIZE_BYTE+1);
+  }
+}
+
 // Print an Xway packet
 void xpck_print(XwayPacket *xpck) {
   size_t length = xpck->len;
-  printf("Xway [%zu]: (", length);
+  printf("Xway [%zu]: ", length);
   size_t header_len = xpck->is_5_way ? HEADER_5_LEN : HEADER_3_LEN;
 
   for(size_t i = 0; i < length; ++i) {
+    if (i == header_len) {
+      printf("| ");
+    } 
     if (i < header_len) {
       printf("%02X ", (xpck->header)[i]);
     } else {
-      printf(") %02X ", (xpck->body)[i - header_len]);
+      printf("%02X ", (xpck->body)[i - header_len]);
     }
   }
   printf("\n");
@@ -81,11 +100,11 @@ unsigned char xpck_get_5_way_id(XwayPacket *xpck) {
 
 // Creates the body of an Xway packet
 void xpck_set_body(XwayPacket *xpck, char *bytes) {
-  size_t len = sizeof(bytes);
+  size_t len = strlen(bytes);
   unsigned char *body = malloc(sizeof(unsigned char) * len);
-  for (size_t i = len; i < len; i++) {
-    body[i] = bytes[i];
-  }
+  
+  memcpy(body, bytes, len);
+
   xpck->body = body;
   xpck->len += len;
 }
@@ -93,23 +112,24 @@ void xpck_set_body(XwayPacket *xpck, char *bytes) {
 // Appends to the body of an Xway packet
 void xpck_append_body(XwayPacket *xpck, char *bytes) {
   if (xpck->body == NULL) {
-    printf("Uninitialised Xway packet!\n");
+    printf("Uninitialized Xway packet!\n");
     exit(-1);
   }
-  size_t len = sizeof(bytes);
-  size_t header_len = xpck->is_5_way ? HEADER_5_LEN : HEADER_3_LEN;
-  size_t new_body_len = len + xpck->len - header_len;
-  unsigned char *body = malloc(sizeof(unsigned char) * new_body_len);
-  for (size_t i = len; i < new_body_len; i++) {
-    if (i < (new_body_len - len)) {
-      body[i] = xpck->body[i];
-    } else {
-      body[i] = bytes[i];
-    }
-  }
+
+  size_t len = strlen(bytes);
+
+  size_t header_len = (xpck->is_5_way ? HEADER_5_LEN : HEADER_3_LEN);
+  size_t current_body_len = xpck->len - header_len;
+  size_t new_body_len = current_body_len + len;
+
+  unsigned char *new_body = malloc(new_body_len);
+
+  memcpy(new_body, xpck->body, current_body_len);
+  memcpy(new_body + current_body_len, bytes, len);
+
   free(xpck->body);
-  xpck->body = body;
-  xpck->len += new_body_len;
+  xpck->body = new_body;
+  xpck->len = header_len + new_body_len;
 }
 
 // Destroy an Xway packet
@@ -120,7 +140,6 @@ void xpck_destroy(XwayPacket *xpck) {
   if (xpck->body != NULL) {
     free(xpck->body);
   }
-  free(xpck);
 }
 
 // Create empty 3 way Xway packet
@@ -132,8 +151,9 @@ XwayPacket * xpck_create_3_way_empty() {
 
 // Create 3 way Xway packet
 XwayPacket * xpck_create_3_way(char *bytes) {
-  XwayPacket * xpck = xpck_create_3_way_empty(); 
+  XwayPacket * xpck = xpck_create_3_way_empty();
   xpck_set_body(xpck, bytes);
+  xpck_set_length_in_header(xpck);
   return xpck;
 }
 
@@ -148,16 +168,17 @@ XwayPacket * xpck_create_5_way_empty() {
 XwayPacket * xpck_create_5_way(char *bytes) {
   XwayPacket * xpck = xpck_create_5_way_empty(); 
   xpck_set_body(xpck, bytes);
+  xpck_set_length_in_header(xpck);
   return xpck;
 }
 
 XwayPacket * xpck_from_bytes(char *bytes) {
   XwayPacket * xpck = malloc(sizeof(XwayPacket));
 
-  int len = bytes[SIZE_BYTE];
+  int len = length_packet(bytes);
   xpck->len = len;
 
-  bool is_5_way = (bytes[MSG_TYPE_BYTE] == (char)0xF0);
+  bool is_5_way = (bytes[MSG_TYPE_BYTE] == (char)0xF1);
 
   int header_len = is_5_way ? HEADER_5_LEN : HEADER_3_LEN;
   int body_len = len - header_len;
