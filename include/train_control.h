@@ -1,5 +1,5 @@
-#ifndef TRAIN_XWAY_INCLUDE_COMMANDE_TRAIN_H_
-#define TRAIN_XWAY_INCLUDE_COMMANDE_TRAIN_H_
+#ifndef TRAIN_XWAY_INCLUDE_TRAIN_CONTROL_H_
+#define TRAIN_XWAY_INCLUDE_TRAIN_CONTROL_H_
 
 #include <stdlib.h>
 #include <semaphore.h>
@@ -13,6 +13,12 @@
 		exit(EXIT_FAILURE);     \
 	}
 
+#define CHECK_T(status, msg)                        \
+  if (0 != (status))   {                            \
+    fprintf(stderr, "pthread erreur : %s\n", msg);  \
+    exit (EXIT_FAILURE);                            \
+  }
+
 typedef void * (*pf_t)(void *);
 
 typedef struct {
@@ -24,9 +30,15 @@ typedef struct {
   int sections[NB_SECTIONS];
   sem_t sem_sec[NB_SECTIONS];
   sem_t mutex;
-} TrackSections;
+} SectionLocking;
+
+typedef struct{
+    pthread_cond_t cond[NB_TRAINS];
+    pthread_mutex_t mutex[NB_TRAINS];
+    int wu_flag[NB_TRAINS];
+} ThreadControl;
 
 int init_train(int train_id);
 
-#endif  // TRAIN_XWAY_INCLUDE_COMMANDE_TRAIN_H_
+#endif  // TRAIN_XWAY_INCLUDE_TRAIN_CONTROL_H_
 
