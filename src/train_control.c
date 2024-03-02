@@ -3,7 +3,7 @@
 #include <semaphore.h>
 #include <sys/mman.h>
 
-#include "commande_train.h"
+#include "train_control.h"
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -12,8 +12,6 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 int get_section_id();
 int get_next_section_id();
 int lock_section(int section_id);
-
-
 
 void signal_thread() {
     pthread_mutex_lock(&mutex);
