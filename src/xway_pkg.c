@@ -5,11 +5,14 @@
 #include "xway_pkg.h"
 
 char header_3_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x10, 0x00, 0x10};
-char header_5_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF1, 0x00, 0x10, 0x00, 0x10, 0x00, 0x00};
+char header_5_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF1, 0x00, 0x10, 0x00, 0x10, 0x09, 0x00};
+
+#define REQ_LEN 14
+char request[] = {0x37, 0x06, 0x68, 0x07, 0x00, 0x00, 0x03, 0x00, 0x30, 0x00, 0x00, 0x00, 0xff, 0xff};
 
 // Get packet length
 int length_packet(char *bytes) {
-  int length = SIZE_BYTE+1 + (unsigned char)bytes[SIZE_BYTE];
+  int length = (SIZE_BYTE+1) + (unsigned char)bytes[SIZE_BYTE];
   return length;
 }
 
@@ -107,6 +110,16 @@ void xpck_set_body(XwayPacket *xpck, char *bytes) {
   xpck->len += len;
 }
 
+// Creates the body of an Xway packet
+void xpck_set_body_n(XwayPacket *xpck, char *bytes, size_t len) {
+  unsigned char *body = malloc(sizeof(unsigned char) * len);
+  
+  memcpy(body, bytes, len);
+
+  xpck->body = body;
+  xpck->len += len;
+}
+
 // Appends to the body of an Xway packet
 void xpck_append_body(XwayPacket *xpck, char *bytes) {
   if (xpck->body == NULL) {
@@ -170,6 +183,7 @@ XwayPacket * xpck_create_5_way(char *bytes) {
   return xpck;
 }
 
+// Create xpck from bytes
 XwayPacket * xpck_from_bytes(char *bytes) {
   XwayPacket * xpck = malloc(sizeof(XwayPacket));
 
@@ -189,7 +203,49 @@ XwayPacket * xpck_from_bytes(char *bytes) {
 
   xpck->header = header;
   xpck->body = body;
+  xpck->is_5_way = is_5_way;
 
   return xpck;
 }
 
+// Create request for a train
+XwayPacket * xpck_train_req(int train_id, int addr_word, int addr_section) {
+  XwayPacket * xpck = malloc(sizeof(XwayPacket));
+  xpck = xpck_create_5_way_empty();
+  xpck_set_5_way_id(xpck, (unsigned char) train_id);
+  xpck_set_body_n(xpck, request, REQ_LEN);
+  xpck->body[REQ_ADDR_BYTE] = addr_word;
+  xpck->body[REQ_SEC_BYTE] = addr_section;
+  xpck_set_length_in_header(xpck);
+  return xpck;
+}
+
+// Create request for a train
+XwayPacket * xpck_train_req_aig(int train_id, int addr_word, int addr_section, int aig) {
+  XwayPacket * xpck = malloc(sizeof(XwayPacket));
+  xpck = xpck_create_5_way_empty();
+  xpck_set_5_way_id(xpck, (unsigned char) train_id);
+  xpck_set_body_n(xpck, request, REQ_LEN);
+  xpck->body[REQ_ADDR_BYTE] = addr_word;
+  xpck->body[REQ_SEC_BYTE] = addr_section;
+  xpck->body[REQ_AIG_1] = aig;
+  xpck->body[REQ_AIG_2] = 0;
+  xpck_set_length_in_header(xpck);
+  return xpck;
+}
+
+unsigned char* xpck_combine_header_body(const XwayPacket *xpck) {
+  size_t header_len = xpck->is_5_way ? HEADER_5_LEN : HEADER_3_LEN;
+  size_t body_len = xpck->len - header_len;
+  
+  unsigned char *combined = malloc(xpck->len);
+  if (!combined) {
+    printf("Memory allocation failed!\n");
+    return NULL;
+  }
+  
+  memcpy(combined, xpck->header, header_len);
+  memcpy(combined + header_len, xpck->body, body_len);
+  
+  return combined;
+}

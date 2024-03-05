@@ -17,6 +17,11 @@
 #define XWAY_CLIENT_ADDR 48
 #define XWAY_SERVER_ADDR 20
 
+#define REQ_ADDR_BYTE 4
+#define REQ_SEC_BYTE 10
+#define REQ_AIG_1 12
+#define REQ_AIG_2 13
+
 typedef struct {
   unsigned char *header;
   unsigned char *body;
@@ -39,6 +44,8 @@ XwayPacket * xpck_create_3_way(char *bytes);
 XwayPacket * xpck_create_5_way_empty();
 XwayPacket * xpck_create_5_way(char *bytes);
 XwayPacket * xpck_from_bytes(char *bytes);
+XwayPacket * xpck_train_req(int train_id, int addr_word, int addr_section);
+unsigned char* xpck_combine_header_body(const XwayPacket *xpck);
 
 #endif  // TRAIN_XWAY_INCLUDE_XWAY_MSG_H_
 

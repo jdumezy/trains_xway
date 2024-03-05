@@ -24,7 +24,8 @@ void close_connection(int *sock) {
 }
 
 void send_xway(int *sock, XwayPacket *xpck) {
-  char message[MAX_CHAR];
+  size_t len = xpck->len;
+  unsigned char *message = xpck_combine_header_body(xpck);
   CHECK(write(*sock, message, xpck->len), "write()");
 }
 
@@ -74,7 +75,7 @@ void send_order(int *sock, XwayPacket *xpck) {
     char bytes[] = { 0xfe };
     XwayPacket *xpck_r = xpck_create_5_way(bytes);
     xpck_set_5_way_id(xpck_r, id);
-    xpck_r->body[FWAY_TYPE_BYTE] = (unsigned char)0x19;
+    xpck_r->header[FWAY_TYPE_BYTE] = (unsigned char)0x19;
 
     send_xway(sock, xpck_r);
     printf("\tSend: "); xpck_print(xpck_r);
@@ -89,22 +90,4 @@ void send_order(int *sock, XwayPacket *xpck) {
 
   printf("}\n");
 }
-
-// 00000001 00 ??/08 00 F0 30 10 14 10 25 06
-// 00000001 00 ??/07 00 F0 14 10 30 10 FE/FD
-
-// FD impossible de faire, FE ok c'est fait
-//
-// Utiliser requete 37 à la place du 25 06 : 37codereq 06cat 68segmt 07cat 27(39) 00 addr 0200 3a00(adresse moi) 0300(tronçon)
-// 30 --> adresse
-// Adresse en 39 (48 xway), valeur en 40
-// réponse ...... 30 10 FE
-// retour F1 14 10 30 10 09 XX 37 ....
-// il faut récupérer XX
-// réponse F1 30 10 14 10 19(0 to 1) XX FE
-//
-// write --> read --> read --> write
-
-// handle send rec send rec
-// stop and start
 

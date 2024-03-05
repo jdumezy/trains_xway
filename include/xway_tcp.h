@@ -7,7 +7,7 @@
 
 #include "xway_pkg.h"
 
-#define MAX_CHAR 1000
+#define MAX_CHAR 512
 #define PORT 502
 
 #define CHECK(status, msg)	\

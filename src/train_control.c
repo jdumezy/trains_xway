@@ -13,7 +13,9 @@ ThreadControl *thread_control;
 volatile sig_atomic_t stop_flag = 0;
 
 void sigint_handler(int sig) {
-  stop_flag = 1;
+  if (sig == SIGINT) {
+    stop_flag = 1;
+  }
 }
 
 // Communication API/path functions
@@ -21,9 +23,9 @@ int get_section_id();
 int get_next_section_id();
 int lock_and_set_section(int section_id, int train_id);// be careful with multilock/multiunlock for critical sections
 int send_uspeed(int train_id, int speed);
-int is_section_switch(int section_id);
+//int is_section_switch(int section_id);
 
-// pthread_cond_signal(&cond); // Wake up one waiting thread
+// pthread_cond_signal(&cond); // Wake up a waiting thread
 
 void th_train_control(long idl) {
   int id = (int)idl;
@@ -138,4 +140,3 @@ int main() {
   free(thread_control);
 }
 
-// TODO(jdumezy) add signal handling for stop_flag and proper termination
