@@ -45,6 +45,7 @@ XwayPacket * xpck_create_5_way_empty();
 XwayPacket * xpck_create_5_way(char *bytes);
 XwayPacket * xpck_from_bytes(char *bytes);
 XwayPacket * xpck_train_req(int train_id, int addr_word, int addr_section);
+XwayPacket * xpck_aig_req(int train_id, int addr_word, int addr_aig);
 unsigned char* xpck_combine_header_body(const XwayPacket *xpck);
 
 #endif  // TRAIN_XWAY_INCLUDE_XWAY_MSG_H_

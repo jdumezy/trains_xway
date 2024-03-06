@@ -1,6 +1,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <semaphore.h>
 
 #include "xway_tcp.h"
 #include "xway_pkg.h"
@@ -32,7 +33,8 @@ void send_xway(int *sock, XwayPacket *xpck) {
 XwayPacket * receive_xway(int *sock) {
   char server_reply[MAX_CHAR];
   CHECK(read(*sock, server_reply, MAX_CHAR), "read()");
-  return xpck_from_bytes(server_reply);
+  XwayPacket *xpck = xpck_from_bytes(server_reply);
+  return xpck;
 }
 
 void send_start(int *sock) {
@@ -78,6 +80,46 @@ void send_order(int *sock, XwayPacket *xpck) {
     xpck_r->header[FWAY_TYPE_BYTE] = (unsigned char)0x19;
 
     send_xway(sock, xpck_r);
+    printf("\tSend: "); xpck_print(xpck_r);
+
+    xpck_destroy(xpck_c);
+    xpck_destroy(xpck_r);
+  } else {
+    printf("Incorrect message received.\n");
+  }
+
+  xpck_destroy(xpck_a);
+
+  printf("}\n");
+}
+
+void send_order_sem(int *sock, XwayPacket *xpck, sem_t * msg) {
+  sem_wait(msg);
+  printf("Sending order {\n");
+  
+  send_xway(sock, xpck);
+  printf("\tSend: "); xpck_print(xpck);
+
+  XwayPacket *xpck_a = receive_xway(sock);
+  printf("\tRecv: "); xpck_print(xpck_a);
+  sem_post(msg);
+
+  if (xpck_a->body != NULL && xpck_a->body[0] == (unsigned char)0xfd) {
+    printf("\tRequirement already satisfied\n");
+  }
+  else if (xpck_a->body != NULL && xpck_a->body[0] == (unsigned char)0xfe) {
+    XwayPacket *xpck_c = receive_xway(sock);
+    printf("\tRecv: "); xpck_print(xpck_c);
+    unsigned char id = xpck_get_5_way_id(xpck_c);
+
+    char bytes[] = { 0xfe };
+    XwayPacket *xpck_r = xpck_create_5_way(bytes);
+    xpck_set_5_way_id(xpck_r, id);
+    xpck_r->header[FWAY_TYPE_BYTE] = (unsigned char)0x19;
+
+    sem_wait(msg);
+    send_xway(sock, xpck_r);
+    sem_post(msg);
     printf("\tSend: "); xpck_print(xpck_r);
 
     xpck_destroy(xpck_c);

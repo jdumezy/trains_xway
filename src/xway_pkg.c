@@ -8,7 +8,7 @@ char header_3_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x1
 char header_5_way[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF1, 0x00, 0x10, 0x00, 0x10, 0x09, 0x00};
 
 #define REQ_LEN 14
-char request[] = {0x37, 0x06, 0x68, 0x07, 0x00, 0x00, 0x03, 0x00, 0x30, 0x00, 0x00, 0x00, 0xff, 0xff};
+char request[] = {0x37, 0x06, 0x68, 0x07, 0x00, 0x00, 0x03, 0x00, 0x30, 0x00, 0xff, 0xff, 0xff, 0xff};
 
 // Get packet length
 int length_packet(char *bytes) {
@@ -212,23 +212,23 @@ XwayPacket * xpck_from_bytes(char *bytes) {
 XwayPacket * xpck_train_req(int train_id, int addr_word, int addr_section) {
   XwayPacket * xpck = malloc(sizeof(XwayPacket));
   xpck = xpck_create_5_way_empty();
-  xpck_set_5_way_id(xpck, (unsigned char) train_id);
+  xpck_set_5_way_id(xpck, train_id);
   xpck_set_body_n(xpck, request, REQ_LEN);
   xpck->body[REQ_ADDR_BYTE] = addr_word;
   xpck->body[REQ_SEC_BYTE] = addr_section;
+  xpck->body[REQ_SEC_BYTE+1] = 0;
   xpck_set_length_in_header(xpck);
   return xpck;
 }
 
-// Create request for a train
-XwayPacket * xpck_train_req_aig(int train_id, int addr_word, int addr_section, int aig) {
+// Create request for a rail switch
+XwayPacket * xpck_aig_req(int train_id, int addr_word, int addr_aig) {
   XwayPacket * xpck = malloc(sizeof(XwayPacket));
   xpck = xpck_create_5_way_empty();
-  xpck_set_5_way_id(xpck, (unsigned char) train_id);
+  xpck_set_5_way_id(xpck, train_id);
   xpck_set_body_n(xpck, request, REQ_LEN);
   xpck->body[REQ_ADDR_BYTE] = addr_word;
-  xpck->body[REQ_SEC_BYTE] = addr_section;
-  xpck->body[REQ_AIG_1] = aig;
+  xpck->body[REQ_AIG_1] = addr_aig;
   xpck->body[REQ_AIG_2] = 0;
   xpck_set_length_in_header(xpck);
   return xpck;
