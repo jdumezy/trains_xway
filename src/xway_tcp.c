@@ -94,6 +94,7 @@ void send_order(int *sock, XwayPacket *xpck) {
 }
 
 void send_order_sem(int *sock, XwayPacket *xpck, sem_t * msg) {
+  int addr = xpck->header[CLIENT_ADDR_BYTE];
   sem_wait(msg);
   printf("Sending order {\n");
   
@@ -116,6 +117,7 @@ void send_order_sem(int *sock, XwayPacket *xpck, sem_t * msg) {
     XwayPacket *xpck_r = xpck_create_5_way(bytes);
     xpck_set_5_way_id(xpck_r, id);
     xpck_r->header[FWAY_TYPE_BYTE] = (unsigned char)0x19;
+    xpck_r->header[CLIENT_ADDR_BYTE] = addr;
 
     sem_wait(msg);
     send_xway(sock, xpck_r);

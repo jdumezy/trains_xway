@@ -17,21 +17,23 @@ int aig_1[] =   {12, 10, 13,  2, -1};
 int track_2[] = { 4, 22, 27, 28, 9, 24 };
 int aig_2[] =   {-1,  3, -1,  6, 5,  8 };
 // Loop
-int track_3[] = { 13, 20, 30, 11, 31, 26, 15, 12 };
-int aig_3[] =   { -1, 10,  7,  6, -1,  9,  1, -1};
+int track_3[] = {0, 13, 20, 30, 9, 31, 26, 15, 12 };
+int aig_3[] =   {0, -1, 10,  7,  6, -1,  9,  1, -1};
 // In-out
-int track_4[] = { 7, 29, 9, 28, 27, 47 };
-int aig_4[] =   {-1, -1, -1, -1, -1, -1};
+int track_4[] = { 7, 29, 49, 28, 27, 47 };
+int aig_4[] =   {23, -1, -1, -1, -1, -1};
 
 int *tracks[] = {track_1, track_2, track_3, track_4};
 int *aig[] = {aig_1, aig_2, aig_3, aig_4};
 
 int len_track[] = {5, 6, 9, 6};
 int nb_laps[] = {1, 1, 1, 1};
-int words[] = {39, 42, 50, 53};
+int words[] = {39, 42, 49, 52};
 
 //               0  1  2  3   4   5   6   7   8   9  10  11  12  13
 int tab_aig[] = {0, 1, 3, 7, 10, 12, 13, 14, 20, 21, 22, 23, 31, 33};
+
+int addr[] = {41, 48, 42, 43}; // 41 42 43 48
 
 sem_t semaphores[NB_SEMAPHORES];
 sem_t msg;
@@ -71,16 +73,22 @@ void th_train_control(long idl) {
       int a = words[id];
 
       XwayPacket *xpck_aig = xpck_aig_req(50+10*id, words[id], aig_val);
+      xpck_aig->header[CLIENT_ADDR_BYTE] = addr[id];
+      xpck_aig->body[8] = addr[id];
       send_order_sem(&sock, xpck_aig, &msg);
       xpck_destroy(xpck_aig);
 
       XwayPacket *xpck_cmd = xpck_train_req(50+10*id, words[id], tracks[id][i % lt]);
+      xpck_cmd->header[CLIENT_ADDR_BYTE] = addr[id];
+      xpck_cmd->body[8] = addr[id];
       send_order_sem(&sock, xpck_cmd, &msg);
       xpck_destroy(xpck_cmd);
 
       sem_post(&semaphores[aig_id]);
     } else {
       XwayPacket *xpck_cmd = xpck_train_req(50+10*id, words[id], tracks[id][i % lt]);
+      xpck_cmd->header[CLIENT_ADDR_BYTE] = addr[id];
+      xpck_cmd->body[8] = addr[id];
       send_order_sem(&sock, xpck_cmd, &msg);
       xpck_destroy(xpck_cmd);
     }
@@ -116,6 +124,8 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < nb_trains; i++) {
     CHECK_T(pthread_join(t_ctrl_id[i], NULL), "pthread_join");
   }
+
+  printf("Terminating\n");
 
   destroy_semaphores();
 }
