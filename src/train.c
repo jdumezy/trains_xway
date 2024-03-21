@@ -38,7 +38,7 @@ int words[] = {39, 42, 49, 52};
 //               0  1  2  3   4   5   6   7   8   9  10  11  12  13
 int tab_aig[] = {0, 1, 3, 7, 10, 12, 13, 14, 20, 21, 22, 23, 31, 33};
 
-int addr[] = {41, 48, 42, 43};
+int addr[] = {47, 48, 42, 43};
 
 sem_t resources[6 + 6];
 
@@ -133,8 +133,6 @@ void th_train_control(long idl) {
     if (aig_id != -1) {
       int aig_val = tab_aig[aig_id];
 
-      //sem_wait(&semaphores[aig_id]);
-
       int a = words[id];
 
       XwayPacket *xpck_aig = xpck_aig_req(50+10*id, words[id], aig_val);
@@ -149,7 +147,6 @@ void th_train_control(long idl) {
       send_order_sem(&sock, xpck_cmd, &msg);
       xpck_destroy(xpck_cmd);
 
-      //sem_post(&semaphores[aig_id]);
     } else {
       XwayPacket *xpck_cmd = xpck_train_req(50+10*id, words[id], tracks[id][i % lt]);
       xpck_cmd->header[CLIENT_ADDR_BYTE] = addr[id];
